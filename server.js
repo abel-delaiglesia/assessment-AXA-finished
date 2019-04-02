@@ -10,12 +10,7 @@ app.use(session({
     saveUninitialized: true
 }));
 
-
-var userconnected = {  
-                    "name":  "" ,
-                    "email": "",
-                    "role":  ""
-                   };;
+var userconnected = "";
 var Request = require("request");
 let lodash = require('lodash');    
 
@@ -72,30 +67,27 @@ app.get('/login', function (req, res) {
 }
 });
 
-
 // Authentication and Authorization Middleware
 var auth = function(req, res, next) {
-  if(req.query.username === ""){
-  var obj = JSON.parse(userconnected);
-  console.dir("user result : " + obj['name'] + "," + obj['email']  + "," +  obj['role']) ;
-  if (req.session && obj['role'] === "admin" || obj['role'] === "user" )
-  {
-    console.dir("Role of User connected : " + obj['role']);
-    return next();
-  } 
-  else{
+  if(userconnected != "" && req.session)
+  {   
+      var obj = JSON.parse(userconnected);
+      console.dir("user result : " + obj['name'] + "," + obj['email']  + "," +  obj['role']) ;
+      if (obj['role'] === "admin" || obj['role'] === "user" )
+      {
+        console.dir("Role of User connected : " + obj['role']);
+        return next();
+      }else{
+        return res.sendStatus("No user's Role detected");
+      }
+     }else{
     return res.sendStatus(401);
   }
-}else{
-  return res.sendStatus("you aren''t connected with user & pass");
-}
 };
-
-
 
 // Logout endpoint
 app.get('/logout', function (req, res) {
-  req.session.destroy();
+  req.session.destroy(); 
   res.send("logout success!");
 });
 
@@ -112,7 +104,7 @@ app.get('/SelectDataFromId/:id', auth, function (req, res) {
     res.send("name: " + rest[0].name + "; email: " +  rest[0].email + "; role: " +  rest[0].role);
    }
   }else{
-    res.send("you aren't logged with user and password");
+    res.send(" you are not logged with user and password");
   }
 });
 
@@ -129,7 +121,7 @@ app.get('/SelectDataFromName/:name', auth, function (req, res) {
    res.send("name: " + rest[0].name + "; email: " +  rest[0].email + "; role: " +  rest[0].role);
   }
 }else{
-  res.send("you aren't logged with user and password");
+  res.send("at (/SelectDataFromName/:name) , session status: " + req.session);
 }
 });
 
@@ -148,7 +140,7 @@ app.get('/SelectListOfpoliciesFromUserName/:name', auth, function (req, res) {
    res.send("role admin is mandatorty for this operation");
   }
 }else{
-  res.send("you aren't logged with user and password");
+  res.send("at (/SelectListOfpoliciesFromUserName/:name) , session status: " + req.session);
 }
 });
 
@@ -168,7 +160,7 @@ app.get('/SelecUserNameLinkedToPilicy/:PolicyId', auth, function (req, res) {
   res.send("role admin is mandatorty for this operation");
  }
 }else{
-  res.send("you aren't logged with user and password");
+  res.send("at (/SelecUserNameLinkedToPilicy/:PolicyId) , session status: " + req.session);
 }
 }
 
