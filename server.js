@@ -75,6 +75,7 @@ app.get('/login', function (req, res) {
 
 // Authentication and Authorization Middleware
 var auth = function(req, res, next) {
+  if(req.query.username === ""){
   var obj = JSON.parse(userconnected);
   console.dir("user result : " + obj['name'] + "," + obj['email']  + "," +  obj['role']) ;
   if (req.session && obj['role'] === "admin" || obj['role'] === "user" )
@@ -85,6 +86,9 @@ var auth = function(req, res, next) {
   else{
     return res.sendStatus(401);
   }
+}else{
+  return res.sendStatus("you aren''t connected with user & pass");
+}
 };
 
 
@@ -99,32 +103,42 @@ app.get('/logout', function (req, res) {
 app.get('/SelectDataFromId/:id', auth, function (req, res) {
 
    var obj = JSON.parse(userconnected);
-   if (req.session && obj['role'] === "admin" || obj['role'] === "user" )
+   if (req.session)
+   {
+   if(obj['role'] === "admin" || obj['role'] === "user" )
    {
     var id = req.params.id;
     var rest = lodash.filter(clients.clients, {"id":id});
     res.send("name: " + rest[0].name + "; email: " +  rest[0].email + "; role: " +  rest[0].role);
    }
- 
+  }else{
+    res.send("you aren't logged with user and password");
+  }
 });
 
 // Get content endpoint
 app.get('/SelectDataFromName/:name', auth, function (req, res) {
  
   var obj = JSON.parse(userconnected);
-  if (req.session && obj['role'] === "admin" || obj['role'] === "user" )
+  if (req.session)
+  {
+  if(obj['role'] === "admin" || obj['role'] === "user" )
   {
    var name = req.params.name;
    var rest = lodash.filter(clients.clients, {"name":name});
    res.send("name: " + rest[0].name + "; email: " +  rest[0].email + "; role: " +  rest[0].role);
   }
+}else{
+  res.send("you aren't logged with user and password");
+}
 });
 
 // Get content endpoint
 app.get('/SelectListOfpoliciesFromUserName/:name', auth, function (req, res) {
 
   var obj = JSON.parse(userconnected);
-  if (req.session && obj['role'] === "admin" )
+  if (req.session){
+    if(obj['role'] === "admin" )
   {
    var name = req.params.name;
    var rest = lodash.filter(clients.clients, {"name":name});
@@ -133,13 +147,18 @@ app.get('/SelectListOfpoliciesFromUserName/:name', auth, function (req, res) {
   }else{
    res.send("role admin is mandatorty for this operation");
   }
+}else{
+  res.send("you aren't logged with user and password");
+}
 });
 
 // Get content endpoint
 app.get('/SelecUserNameLinkedToPilicy/:PolicyId', auth, function (req, res) {
 
  var obj = JSON.parse(userconnected);
- if (req.session && obj['role'] === "admin")
+ if(req.session)
+ {
+ if (obj['role'] === "admin")
  {
   var PolicyId = req.params.PolicyId;
   var Policy = lodash.filter(policies.policies, {"id":PolicyId});
@@ -148,7 +167,12 @@ app.get('/SelecUserNameLinkedToPilicy/:PolicyId', auth, function (req, res) {
   }else{
   res.send("role admin is mandatorty for this operation");
  }
-});
+}else{
+  res.send("you aren't logged with user and password");
+}
+}
+
+);
 
 app.listen(3000);
 console.log("app running at http://localhost:3000");
